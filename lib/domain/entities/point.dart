@@ -24,7 +24,20 @@ class Point extends Equatable {
   Map<String, dynamic> toLocalJson() => {
         PointsSchema.id: id,
         ...coordinates.toLocalJson(),
+        PointsSchema.userId: user?.id,
       };
+
+  Point copyWithExtra({
+    User? user,
+    List<Comment>? comments,
+  }) {
+    return Point(
+      id: id,
+      coordinates: coordinates,
+      user: user ?? this.user,
+      comments: comments ?? this.comments,
+    );
+  }
 
   @override
   List<Object?> get props => [id, coordinates, user, comments];

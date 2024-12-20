@@ -1,19 +1,19 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_offline_mapbox/data/db/schemas/comment_resources_schema.dart';
 import 'package:flutter_offline_mapbox/data/db/schemas/exports.dart';
-import 'package:flutter_offline_mapbox/data/db/storage_client.dart';
+import 'package:flutter_offline_mapbox/data/db/sqlite_client.dart';
 import 'package:injectable/injectable.dart';
 import 'package:uuid/uuid.dart';
 
 @injectable
 class CommentsDao {
-  CommentsDao(this._storageClient);
+  CommentsDao(this._sqliteClient);
 
-  final StorageClient _storageClient;
+  final SqliteClient _sqliteClient;
 
   Future<List<dynamic>> getCommentsByPoint(String pointId) async {
     try {
-      List<dynamic> comments = await _storageClient.db!.query(
+      List<dynamic> comments = await _sqliteClient.db!.query(
         CommentsSchema.tableName,
         where: '${CommentsSchema.pointId} = ?',
         whereArgs: [pointId],
@@ -25,14 +25,17 @@ class CommentsDao {
     }
   }
 
-  Future<void> insertComment({required String text, required String userId, required String pointId}) async {
+  /// Returns comment id
+  Future<String> insertComment({required String text, required String userId, required String pointId}) async {
     try {
-      await _storageClient.db!.insert(CommentsSchema.tableName, {
-        CommentsSchema.id: const Uuid().v4(),
+      final id = const Uuid().v4();
+      await _sqliteClient.db!.insert(CommentsSchema.tableName, {
+        CommentsSchema.id: id,
         CommentsSchema.text: text,
         CommentsSchema.userId: userId,
         CommentsSchema.pointId: pointId,
       });
+      return id;
     } catch (e) {
       debugPrint(e.toString());
       rethrow;

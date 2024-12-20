@@ -2,20 +2,20 @@ import 'package:equatable/equatable.dart';
 import 'package:flutter_offline_mapbox/data/db/schemas/exports.dart';
 
 class User extends Equatable {
-  const User({required this.id, required this.name});
+  const User({required this.id, required this.nickname});
 
   final String id;
-  final String name;
+  final String nickname;
 
   User.fromLocalJson(Map<String, dynamic> json)
       : id = json[UsersSchema.id],
-        name = json[UsersSchema.name];
+        nickname = json[UsersSchema.nickname];
 
   Map<String, dynamic> toLocalJson() => {
         UsersSchema.id: id,
-        UsersSchema.name: name,
+        UsersSchema.nickname: nickname,
       };
 
   @override
-  List<Object?> get props => [id, name];
+  List<Object?> get props => [id, nickname];
 }

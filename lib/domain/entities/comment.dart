@@ -1,40 +1,28 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_offline_mapbox/data/db/schemas/exports.dart';
 
-import 'point.dart';
-import 'user.dart';
-
 class Comment extends Equatable {
   const Comment({
     required this.id,
     required this.text,
-    required this.user,
-    required this.point,
     required this.resources,
   });
 
   final String id;
   final String text;
-  final User user;
-  final Point point;
   final List<CommentResource> resources;
 
   Comment.fromLocalJson(
     Map<String, dynamic> json, {
-    required Map<String, dynamic> userJson,
-    required Map<String, dynamic> pointJson,
-    required List<Map<String, dynamic>> commentResources,
+    required List<dynamic> commentResources,
   })  : id = json[CommentsSchema.id],
         text = json[CommentsSchema.text],
-        user = User.fromLocalJson(userJson),
-        point = Point.fromLocalJson(pointJson),
-        resources = commentResources.map((item) => CommentResource.fromLocalJson(item)).toList();
+        resources =
+            commentResources.map((item) => CommentResource.fromLocalJson(item as Map<String, dynamic>)).toList();
 
   Map<String, dynamic> toLocalJson() => {
         CommentsSchema.id: id,
         CommentsSchema.text: text,
-        CommentsSchema.userId: user.id,
-        CommentsSchema.pointId: point.id,
       };
 
   @override
@@ -44,10 +32,12 @@ class Comment extends Equatable {
 class CommentResource extends Equatable {
   const CommentResource({
     required this.id,
+    required this.name,
     required this.extension,
   });
 
   final String id;
+  final String name;
   final String extension;
 
   CommentResourceType get type {
@@ -58,6 +48,7 @@ class CommentResource extends Equatable {
       case 'gif':
       case 'webp':
       case 'svg':
+      case 'heic':
         return CommentResourceType.image;
       case 'mp4':
       case 'webm':
@@ -70,10 +61,12 @@ class CommentResource extends Equatable {
 
   CommentResource.fromLocalJson(Map<String, dynamic> json)
       : id = json[CommentResourcesSchema.id],
+        name = json[CommentResourcesSchema.name],
         extension = json[CommentResourcesSchema.extension];
 
   Map<String, dynamic> toLocalJson() => {
         CommentResourcesSchema.id: id,
+        CommentResourcesSchema.name: name,
         CommentResourcesSchema.extension: extension,
       };
 

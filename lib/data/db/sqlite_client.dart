@@ -4,8 +4,8 @@ import 'package:injectable/injectable.dart';
 import 'schemas/exports.dart';
 
 @lazySingleton
-class StorageClient {
-  StorageClient();
+class SqliteClient {
+  SqliteClient();
 
   late final Database? _db;
 
@@ -23,7 +23,8 @@ CREATE TABLE ${UsersSchema.tableName} (
   CHECK(
     LENGTH("${UsersSchema.id}") == $_uuidLength
   ),
-  ${UsersSchema.name} TEXT NOT NULL
+  ${UsersSchema.nickname} TEXT UNIQUE NOT NULL,
+  ${UsersSchema.hashedPassword} TEXT NOT NULL
 )
 
 CREATE TABLE ${PointsSchema.tableName} ( 

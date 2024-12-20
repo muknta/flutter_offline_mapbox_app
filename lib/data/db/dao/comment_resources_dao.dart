@@ -1,17 +1,17 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_offline_mapbox/data/db/schemas/comment_resources_schema.dart';
-import 'package:flutter_offline_mapbox/data/db/storage_client.dart';
+import 'package:flutter_offline_mapbox/data/db/sqlite_client.dart';
 import 'package:injectable/injectable.dart';
 
 @injectable
 class CommentResourcesDao {
-  CommentResourcesDao(this._storageClient);
+  CommentResourcesDao(this._sqliteClient);
 
-  final StorageClient _storageClient;
+  final SqliteClient _sqliteClient;
 
   Future<List<dynamic>> getResourcesByComment(String commentId) async {
     try {
-      List<dynamic> resources = await _storageClient.db!.query(
+      List<dynamic> resources = await _sqliteClient.db!.query(
         CommentResourcesSchema.tableName,
         where: '${CommentResourcesSchema.commentId} = ?',
         whereArgs: [commentId],
@@ -23,10 +23,16 @@ class CommentResourcesDao {
     }
   }
 
-  Future<void> insertResource({required String id, required String extension, required String commentId}) async {
+  Future<void> insertResource({
+    required String id,
+    required String name,
+    required String extension,
+    required String commentId,
+  }) async {
     try {
-      await _storageClient.db!.insert(CommentResourcesSchema.tableName, {
+      await _sqliteClient.db!.insert(CommentResourcesSchema.tableName, {
         CommentResourcesSchema.id: id,
+        CommentResourcesSchema.name: name,
         CommentResourcesSchema.extension: extension,
         CommentResourcesSchema.commentId: commentId,
       });
