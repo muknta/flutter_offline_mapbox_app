@@ -41,4 +41,30 @@ class CommentResourcesDao {
       rethrow;
     }
   }
+
+  Future<void> deleteResource(String id) async {
+    try {
+      await _sqliteClient.db!.delete(
+        CommentResourcesSchema.tableName,
+        where: '${CommentResourcesSchema.id} = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deleteResourcesByComment(String commentId) async {
+    try {
+      await _sqliteClient.db!.delete(
+        CommentResourcesSchema.tableName,
+        where: '${CommentResourcesSchema.commentId} = ?',
+        whereArgs: [commentId],
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
 }

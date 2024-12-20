@@ -24,6 +24,20 @@ class CommentsDao {
     }
   }
 
+  Future<List<dynamic>> getCommentsByUser(String userId) async {
+    try {
+      List<dynamic> comments = await _sqliteClient.db!.query(
+        CommentsSchema.tableName,
+        where: '${CommentsSchema.userId} = ?',
+        whereArgs: [userId],
+      );
+      return comments;
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
   /// Returns comment id
   Future<String> insertComment({required String text, required String userId, required String pointId}) async {
     try {
@@ -35,6 +49,59 @@ class CommentsDao {
         CommentsSchema.pointId: pointId,
       });
       return id;
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> editComment({required String id, required String text}) async {
+    try {
+      await _sqliteClient.db!.update(
+        CommentsSchema.tableName,
+        {CommentsSchema.text: text},
+        where: '${CommentsSchema.id} = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deleteComment(String id) async {
+    try {
+      await _sqliteClient.db!.delete(
+        CommentsSchema.tableName,
+        where: '${CommentsSchema.id} = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deleteCommentsByPoint(String pointId) async {
+    try {
+      await _sqliteClient.db!.delete(
+        CommentsSchema.tableName,
+        where: '${CommentsSchema.pointId} = ?',
+        whereArgs: [pointId],
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deleteCommentsByUser(String userId) async {
+    try {
+      await _sqliteClient.db!.delete(
+        CommentsSchema.tableName,
+        where: '${CommentsSchema.userId} = ?',
+        whereArgs: [userId],
+      );
     } catch (e) {
       debugPrint(e.toString());
       rethrow;

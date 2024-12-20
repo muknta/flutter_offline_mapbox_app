@@ -24,8 +24,8 @@ class AuthService {
         throw const AlreadyExistsException();
       }
       final hashedPassword = Crypt.sha256(password).toString();
-      final id = await _usersDao.insertUser(nickname: nickname, hashedPassword: hashedPassword);
-      _sessionService.loginUser(User(id: id, nickname: nickname));
+      final json = await _usersDao.insertUser(nickname: nickname, hashedPassword: hashedPassword);
+      _sessionService.loginUser(User.fromLocalJson(json));
     } catch (e) {
       debugPrint(e.toString());
       rethrow;
@@ -42,11 +42,13 @@ class AuthService {
         throw const NotFoundException();
       }
       final user = User.fromLocalJson(userJson);
-      final hashedPassword = Crypt.sha256(password).toString();
-      if (hashedPassword != await _usersDao.getHashedPasswordByUserId(user.id)) {
+
+      final hashedPasswordByUserId = await _usersDao.getHashedPasswordByUserId(user.id);
+      if (hashedPasswordByUserId != null && Crypt(hashedPasswordByUserId).match(password)) {
+        _sessionService.loginUser(user);
+      } else {
         throw const NotFoundException();
       }
-      _sessionService.loginUser(user);
     } catch (e) {
       debugPrint(e.toString());
       rethrow;
@@ -55,5 +57,15 @@ class AuthService {
 
   Future<void> logOut() async {
     _sessionService.logoutUser();
+  }
+
+  Future<void> deleteUser() async {
+    try {
+      await _usersDao.deleteUser(_sessionService.currentUser!.id);
+      _sessionService.logoutUser();
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
   }
 }

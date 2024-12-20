@@ -52,16 +52,59 @@ class UsersDao {
     }
   }
 
-  /// Returns user id
-  Future<String> insertUser({required String nickname, required String hashedPassword}) async {
+  /// Returns user json
+  Future<Map<String, dynamic>> insertUser({required String nickname, required String hashedPassword}) async {
     try {
       final id = const Uuid().v4();
+      final now = DateTime.now().millisecondsSinceEpoch;
       await _sqliteClient.db!.insert(UsersSchema.tableName, {
         UsersSchema.id: id,
         UsersSchema.nickname: nickname,
         UsersSchema.hashedPassword: hashedPassword,
+        UsersSchema.createdAt: now,
+        UsersSchema.updatedAt: now,
       });
-      return id;
+      return {
+        UsersSchema.id: id,
+        UsersSchema.nickname: nickname,
+        UsersSchema.hashedPassword: hashedPassword,
+        UsersSchema.createdAt: now,
+        UsersSchema.updatedAt: now,
+      };
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> updateUser({required String id, String? nickname, String? hashedPassword}) async {
+    if (nickname == null && hashedPassword == null) {
+      return;
+    }
+    try {
+      await _sqliteClient.db!.update(
+        UsersSchema.tableName,
+        {
+          if (nickname != null) UsersSchema.nickname: nickname,
+          if (hashedPassword != null) UsersSchema.hashedPassword: hashedPassword,
+          UsersSchema.updatedAt: DateTime.now().millisecondsSinceEpoch,
+        },
+        where: '${UsersSchema.id} = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deleteUser(String id) async {
+    try {
+      await _sqliteClient.db!.delete(
+        UsersSchema.tableName,
+        where: '${UsersSchema.id} = ?',
+        whereArgs: [id],
+      );
     } catch (e) {
       debugPrint(e.toString());
       rethrow;

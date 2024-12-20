@@ -6,11 +6,15 @@ class Comment extends Equatable {
     required this.id,
     required this.text,
     required this.resources,
+    required this.createdAt,
+    required this.updatedAt,
   });
 
   final String id;
   final String text;
   final List<CommentResource> resources;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   Comment.fromLocalJson(
     Map<String, dynamic> json, {
@@ -18,15 +22,21 @@ class Comment extends Equatable {
   })  : id = json[CommentsSchema.id],
         text = json[CommentsSchema.text],
         resources =
-            commentResources.map((item) => CommentResource.fromLocalJson(item as Map<String, dynamic>)).toList();
+            commentResources.map((item) => CommentResource.fromLocalJson(item as Map<String, dynamic>)).toList(),
+        createdAt = DateTime.fromMillisecondsSinceEpoch(json[CommentsSchema.createdAt] as int),
+        updatedAt = DateTime.fromMillisecondsSinceEpoch(json[CommentsSchema.updatedAt] as int);
 
-  Map<String, dynamic> toLocalJson() => {
+  Map<String, dynamic> toLocalJson({required String userId, required String pointId}) => {
         CommentsSchema.id: id,
         CommentsSchema.text: text,
+        CommentsSchema.userId: userId,
+        CommentsSchema.pointId: pointId,
+        CommentsSchema.createdAt: createdAt.millisecondsSinceEpoch,
+        CommentsSchema.updatedAt: updatedAt.millisecondsSinceEpoch,
       };
 
   @override
-  List<Object?> get props => [id, text];
+  List<Object?> get props => [id, text, resources, createdAt, updatedAt];
 }
 
 class CommentResource extends Equatable {

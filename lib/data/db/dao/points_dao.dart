@@ -57,8 +57,52 @@ class PointsDao {
         PointsSchema.lat: lat,
         PointsSchema.lng: lng,
         PointsSchema.userId: userId,
+        PointsSchema.createdAt: DateTime.now().millisecondsSinceEpoch,
+        PointsSchema.updatedAt: DateTime.now().millisecondsSinceEpoch,
       });
       return id;
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> triggerUpdatePoint({required String id}) async {
+    try {
+      await _sqliteClient.db!.update(
+        PointsSchema.tableName,
+        {
+          PointsSchema.updatedAt: DateTime.now().millisecondsSinceEpoch,
+        },
+        where: '${PointsSchema.id} = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deletePoint(String id) async {
+    try {
+      await _sqliteClient.db!.delete(
+        PointsSchema.tableName,
+        where: '${PointsSchema.id} = ?',
+        whereArgs: [id],
+      );
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deletePointsByUser(String userId) async {
+    try {
+      await _sqliteClient.db!.delete(
+        PointsSchema.tableName,
+        where: '${PointsSchema.userId} = ?',
+        whereArgs: [userId],
+      );
     } catch (e) {
       debugPrint(e.toString());
       rethrow;

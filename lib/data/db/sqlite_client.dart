@@ -16,7 +16,7 @@ class SqliteClient {
 
   @PostConstruct(preResolve: true)
   Future<void> open() async {
-    _db = await openDatabase(_path, onCreate: (Database db, int version) async {
+    _db = await openDatabase(_path, version: 1, onCreate: (Database db, int version) async {
       await db.execute('''
 CREATE TABLE ${UsersSchema.tableName} ( 
   ${UsersSchema.id} TEXT PRIMARY KEY
@@ -24,22 +24,29 @@ CREATE TABLE ${UsersSchema.tableName} (
     LENGTH("${UsersSchema.id}") == $_uuidLength
   ),
   ${UsersSchema.nickname} TEXT UNIQUE NOT NULL,
-  ${UsersSchema.hashedPassword} TEXT NOT NULL
+  ${UsersSchema.hashedPassword} TEXT NOT NULL,
+  ${UsersSchema.createdAt} INTEGER NOT NULL,
+  ${UsersSchema.updatedAt} INTEGER NOT NULL
 )
-
+''');
+      await db.execute('''
 CREATE TABLE ${PointsSchema.tableName} ( 
   ${PointsSchema.id} TEXT PRIMARY KEY
   CHECK(
     LENGTH("${PointsSchema.id}") == $_uuidLength
   ),
+  ${PointsSchema.name} TEXT NOT NULL, 
   ${PointsSchema.lat} REAL NOT NULL, 
   ${PointsSchema.lng} REAL NOT NULL,
   ${PointsSchema.userId} TEXT NOT NULL,
+  ${PointsSchema.createdAt} INTEGER NOT NULL,
+  ${PointsSchema.updatedAt} INTEGER NOT NULL,
   CONSTRAINT fk_users
     FOREIGN KEY (${PointsSchema.userId})
     REFERENCES ${UsersSchema.tableName}(${UsersSchema.id})
 )
-
+''');
+      await db.execute('''
 CREATE TABLE ${CommentsSchema.tableName} ( 
   ${CommentsSchema.id} TEXT PRIMARY KEY
   CHECK(
@@ -48,6 +55,8 @@ CREATE TABLE ${CommentsSchema.tableName} (
   ${CommentsSchema.text} TEXT NOT NULL,
   ${CommentsSchema.pointId} TEXT NOT NULL,
   ${CommentsSchema.userId} TEXT NOT NULL,
+  ${CommentsSchema.createdAt} INTEGER NOT NULL,
+  ${CommentsSchema.updatedAt} INTEGER NOT NULL,
   CONSTRAINT fk_points
     FOREIGN KEY (${CommentsSchema.pointId})
     REFERENCES ${PointsSchema.tableName}(${PointsSchema.id}),
@@ -55,7 +64,8 @@ CREATE TABLE ${CommentsSchema.tableName} (
     FOREIGN KEY (${CommentsSchema.userId})
     REFERENCES ${UsersSchema.tableName}(${UsersSchema.id})
 )
-
+''');
+      await db.execute('''
 CREATE TABLE ${CommentResourcesSchema.tableName} ( 
   ${CommentResourcesSchema.id} TEXT PRIMARY KEY,
   ${CommentResourcesSchema.commentId} TEXT NOT NULL,
