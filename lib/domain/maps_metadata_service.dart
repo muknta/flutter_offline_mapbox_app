@@ -6,6 +6,7 @@ import 'package:flutter_offline_mapbox/data/db/dao/comments_dao.dart';
 import 'package:flutter_offline_mapbox/data/db/dao/points_dao.dart';
 import 'package:flutter_offline_mapbox/data/db/dao/users_dao.dart';
 import 'package:flutter_offline_mapbox/data/db/schemas/exports.dart';
+import 'package:flutter_offline_mapbox/data/key_value/shared_prefs_client.dart';
 import 'package:flutter_offline_mapbox/domain/entities/comment.dart';
 import 'package:flutter_offline_mapbox/domain/entities/point.dart';
 import 'package:flutter_offline_mapbox/domain/entities/user.dart';
@@ -24,6 +25,7 @@ class MapsMetadataService {
     this._commentResourcesDao,
     this._pointsDao,
     this._sessionService,
+    this._prefsClient,
   );
 
   final UsersDao _usersDao;
@@ -31,6 +33,11 @@ class MapsMetadataService {
   final CommentResourcesDao _commentResourcesDao;
   final PointsDao _pointsDao;
   final SessionService _sessionService;
+  final SharedPrefsClient _prefsClient;
+
+  Coordinates? getInitialPosition() {
+    return _prefsClient.getInitialPosition();
+  }
 
   Future<void> insertComment({
     required String text,
@@ -156,6 +163,30 @@ class MapsMetadataService {
         result = result.copyWithExtra(comments: comments);
       }
       return result;
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deletePoint(Point point) async {
+    try {
+      final comments = await _commentsDao.getCommentsByPoint(point.id);
+      for (final comment in comments) {
+        await _commentResourcesDao.deleteResourcesByComment(comment.id);
+      }
+      await _commentsDao.deleteCommentsByPoint(point.id);
+      await _pointsDao.deletePoint(point.id);
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deleteComment(Comment comment) async {
+    try {
+      await _commentResourcesDao.deleteResourcesByComment(comment.id);
+      await _commentsDao.deleteComment(comment.id);
     } catch (e) {
       debugPrint(e.toString());
       rethrow;

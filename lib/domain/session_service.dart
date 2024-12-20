@@ -7,7 +7,7 @@ import 'package:flutter_offline_mapbox/domain/entities/user.dart';
 import 'package:injectable/injectable.dart';
 import 'package:rxdart/rxdart.dart';
 
-@lazySingleton
+@singleton
 class SessionService {
   SessionService(this._usersDao, this._prefsClient);
 
@@ -22,7 +22,7 @@ class SessionService {
             sink.add(value);
           },
         ),
-      );
+      ).distinct();
 
   User? currentUser;
 
@@ -30,29 +30,35 @@ class SessionService {
   Future<void> init() async {
     try {
       final userId = _prefsClient.getLoggedInUserId();
-      if (userId != null) {
+      final expirationDate = DateTime.fromMillisecondsSinceEpoch(_prefsClient.getLoginExpirationMilliSinceEpoch() ?? 0);
+      if (userId != null && expirationDate.isAfter(DateTime.now())) {
         final userJson = await _usersDao.getUserById(userId);
         if (userJson == null) {
-          _userController.add(null);
+          logoutUser();
         } else {
           _userController.add(User.fromLocalJson(userJson));
         }
       } else {
-        _userController.add(null);
+        logoutUser();
       }
     } catch (e) {
       debugPrint(e.toString());
+      logoutUser();
       rethrow;
     }
   }
 
   void loginUser(User user) async {
     _prefsClient.setLoggedInUserId(user.id);
+    // TODO: get expiration interval from remote config
+    _prefsClient.setLoginExpirationMilliSinceEpoch(
+        DateTime.now().millisecondsSinceEpoch + const Duration(hours: 2).inMilliseconds);
     _userController.add(user);
   }
 
   void logoutUser() async {
     _prefsClient.removeLoggedInUserId();
+    _prefsClient.removeLoginExpirationMilliSinceEpoch();
     _userController.add(null);
   }
 }
