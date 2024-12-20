@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_offline_mapbox/data/db/schemas/comment_resources_schema.dart';
 import 'package:flutter_offline_mapbox/data/db/schemas/exports.dart';
 import 'package:flutter_offline_mapbox/data/db/sqlite_client.dart';
 import 'package:injectable/injectable.dart';

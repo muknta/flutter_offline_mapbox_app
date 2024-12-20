@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_offline_mapbox/data/db/dao/users_dao.dart';
-import 'package:flutter_offline_mapbox/data/keyValue/shared_prefs_client.dart';
+import 'package:flutter_offline_mapbox/data/key_value/shared_prefs_client.dart';
 import 'package:flutter_offline_mapbox/domain/entities/user.dart';
 import 'package:injectable/injectable.dart';
 import 'package:rxdart/rxdart.dart';
