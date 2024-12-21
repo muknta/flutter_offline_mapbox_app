@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_offline_mapbox/domain/auth_service.dart';
 import 'package:flutter_offline_mapbox/utils/extended_bloc/extended_bloc.dart';
 import 'package:injectable/injectable.dart';

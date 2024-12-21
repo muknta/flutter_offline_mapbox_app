@@ -1,10 +1,6 @@
 PODS:
-  - device_info_plus (0.0.1):
-    - Flutter
   - Flutter (1.0.0)
   - image_picker_ios (0.0.1):
-    - Flutter
-  - irondash_engine_context (0.0.1):
     - Flutter
   - mapbox_maps_flutter (2.4.1):
     - Flutter
@@ -26,20 +22,15 @@ PODS:
   - sqflite_darwin (0.0.4):
     - Flutter
     - FlutterMacOS
-  - super_native_extensions (0.0.1):
-    - Flutter
   - Turf (3.0.0)
 
 DEPENDENCIES:
-  - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
   - Flutter (from `Flutter`)
   - image_picker_ios (from `.symlinks/plugins/image_picker_ios/ios`)
-  - irondash_engine_context (from `.symlinks/plugins/irondash_engine_context/ios`)
   - mapbox_maps_flutter (from `.symlinks/plugins/mapbox_maps_flutter/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
   - sqflite_darwin (from `.symlinks/plugins/sqflite_darwin/darwin`)
-  - super_native_extensions (from `.symlinks/plugins/super_native_extensions/ios`)
 
 SPEC REPOS:
   trunk:
@@ -49,14 +40,10 @@ SPEC REPOS:
     - Turf
 
 EXTERNAL SOURCES:
-  device_info_plus:
-    :path: ".symlinks/plugins/device_info_plus/ios"
   Flutter:
     :path: Flutter
   image_picker_ios:
     :path: ".symlinks/plugins/image_picker_ios/ios"
-  irondash_engine_context:
-    :path: ".symlinks/plugins/irondash_engine_context/ios"
   mapbox_maps_flutter:
     :path: ".symlinks/plugins/mapbox_maps_flutter/ios"
   path_provider_foundation:
@@ -65,14 +52,10 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/shared_preferences_foundation/darwin"
   sqflite_darwin:
     :path: ".symlinks/plugins/sqflite_darwin/darwin"
-  super_native_extensions:
-    :path: ".symlinks/plugins/super_native_extensions/ios"
 
 SPEC CHECKSUMS:
-  device_info_plus: 97af1d7e84681a90d0693e63169a5d50e0839a0d
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   image_picker_ios: c560581cceedb403a6ff17f2f816d7fea1421fc1
-  irondash_engine_context: 3458bf979b90d616ffb8ae03a150bafe2e860cc9
   mapbox_maps_flutter: 84ab1eb6c6c7731e12cc70f6b2d9deb89a78f0fa
   MapboxCommon: 95fe03b74d0d0ca39dc646ca14862deb06875151
   MapboxCoreMaps: f2a82182c5f6c6262220b81547c6df708012932b
@@ -80,7 +63,6 @@ SPEC CHECKSUMS:
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   shared_preferences_foundation: fcdcbc04712aee1108ac7fda236f363274528f78
   sqflite_darwin: 5a7236e3b501866c1c9befc6771dfd73ffb8702d
-  super_native_extensions: 4916b3c627a9c7fffdc48a23a9eca0b1ac228fa7
   Turf: a1604e74adce15c58462c9ae2acdbf049d5be35e
 
 PODFILE CHECKSUM: 819463e6a0290f5a72f145ba7cde16e8b6ef0796

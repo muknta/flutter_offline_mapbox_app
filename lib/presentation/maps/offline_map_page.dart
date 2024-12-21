@@ -138,7 +138,7 @@ class _OfflineMapState extends State<_OfflineMap> {
 
   // TODO: think about more elegant way
   Future<void> waitForManagerInitialization() async {
-    await Future.delayed(const Duration(milliseconds: 120));
+    await Future.delayed(const Duration(milliseconds: 220));
   }
 
   @override
@@ -155,7 +155,7 @@ class _OfflineMapState extends State<_OfflineMap> {
             for (final point in command.points) {
               await _addMarker(
                 Point(coordinates: Position(point.coordinates.lng, point.coordinates.lat)),
-                point.name ?? '',
+                point.name,
               );
             }
           case MapsReinstallPointsCommand():
@@ -163,7 +163,7 @@ class _OfflineMapState extends State<_OfflineMap> {
             for (final point in command.points) {
               await _addMarker(
                 Point(coordinates: Position(point.coordinates.lng, point.coordinates.lat)),
-                point.name ?? '',
+                point.name,
               );
             }
           case MapsAddPointCommand():
@@ -225,35 +225,39 @@ class _OfflineMapState extends State<_OfflineMap> {
     await showModalBottomSheet(
         context: context,
         builder: (context) {
-          return Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text('Enter a title', style: Theme.of(context).textTheme.headlineSmall),
-                const SizedBox(height: 4),
-                TextField(controller: controller),
-                const SizedBox(height: 24),
-                Center(
-                  child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      cubit.addPoint(
-                        lat: coordinates.lat.toDouble(),
-                        lng: coordinates.lng.toDouble(),
-                        name: controller.text,
-                      );
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
-                      child: Text("Add point", style: Theme.of(context).textTheme.headlineSmall),
+          final keyboardPadding = MediaQuery.of(context).viewInsets.bottom;
+          // NOTE: scroll is needed for keyboard
+          return SingleChildScrollView(
+            physics: const NeverScrollableScrollPhysics(),
+            child: Padding(
+              padding: EdgeInsets.only(left: 24.0, right: 24.0, top: 24.0, bottom: 48 + keyboardPadding),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text('Enter a title', style: Theme.of(context).textTheme.headlineSmall),
+                  const SizedBox(height: 4),
+                  TextField(controller: controller),
+                  const SizedBox(height: 24),
+                  Center(
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                        cubit.addPoint(
+                          lat: coordinates.lat.toDouble(),
+                          lng: coordinates.lng.toDouble(),
+                          name: controller.text,
+                        );
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 6.0),
+                        child: Text("Add point", style: Theme.of(context).textTheme.headlineSmall),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 24),
-              ],
+                ],
+              ),
             ),
           );
         });
@@ -504,14 +508,14 @@ class _OfflineMapState extends State<_OfflineMap> {
         });
   }
 
-  // TODO won't work correctly with dispose
-  // @override
-  // Future<void> dispose() async {
-  //   _tappedPoint = null;
-  //   await pointAnnotationManager?.deleteAll();
-  //   pointAnnotationManager = null;
-  //   return super.dispose();
-  // }
+// TODO won't work correctly with dispose
+// @override
+// Future<void> dispose() async {
+//   _tappedPoint = null;
+//   await pointAnnotationManager?.deleteAll();
+//   pointAnnotationManager = null;
+//   return super.dispose();
+// }
 }
 
 class AnnotationClickListener extends OnPointAnnotationClickListener {
