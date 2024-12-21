@@ -7,6 +7,7 @@ import 'package:flutter_offline_mapbox/domain/session_service.dart';
 import 'package:flutter_offline_mapbox/utils/extended_bloc/extended_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:injectable/injectable.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as maps;
 
 part 'maps_types.dart';
 
@@ -59,18 +60,34 @@ class MapsCubit extends ExtendedCubit<MapsState, MapsCommand> {
     }
   }
 
-  Future<void> deletePoint({required double lat, required double lng}) async {
+  Future<void> deletePointByCoordinates({required double lat, required double lng}) async {
     try {
       await _mapsMetadataService.deletePointByCoordinates(lat: lat, lng: lng);
-      command(MapsRemovePointCommand(lat: lat, lng: lng));
+      // NOTE: we cannot remove in that case only one pointAnnotation, so we need to reinstall all of them
+      command(MapsReinstallPointsCommand(await _mapsMetadataService.getAllPoints()));
     } catch (e) {
       command(const MapsLoadErrorCommand());
     }
   }
 
-  Future<void> requestPointDetailsFromCoordinates({required double lat, required double lng}) async {
+  Future<void> deletePoint({required maps.PointAnnotation pointAnnotation}) async {
     try {
-      final point = await _mapsMetadataService.getDetailedPointByCoordinates(lat: lat, lng: lng);
+      await _mapsMetadataService.deletePointByCoordinates(
+        lat: pointAnnotation.geometry.coordinates.lat.toDouble(),
+        lng: pointAnnotation.geometry.coordinates.lng.toDouble(),
+      );
+      command(MapsRemovePointCommand(pointAnnotation: pointAnnotation));
+    } catch (e) {
+      command(const MapsLoadErrorCommand());
+    }
+  }
+
+  Future<void> requestPointDetailsFromCoordinates({required maps.PointAnnotation pointAnnotation}) async {
+    try {
+      final point = await _mapsMetadataService.getDetailedPointByCoordinates(
+        lat: pointAnnotation.geometry.coordinates.lat.toDouble(),
+        lng: pointAnnotation.geometry.coordinates.lng.toDouble(),
+      );
       if (point != null) {
         emit(MapsState(
           currentUser: state.currentUser,
@@ -79,7 +96,7 @@ class MapsCubit extends ExtendedCubit<MapsState, MapsCommand> {
           loadedPercentage: state.loadedPercentage,
           openedDetailedPoint: point,
         ));
-        command(const MapsShowPointDetailsCommand());
+        command(MapsShowPointDetailsCommand(pointAnnotation: pointAnnotation));
       }
     } catch (e) {
       command(const MapsLoadErrorCommand());
@@ -116,6 +133,36 @@ class MapsCubit extends ExtendedCubit<MapsState, MapsCommand> {
         initialPosition: state.initialPosition,
         loadedPercentage: state.loadedPercentage,
         openedDetailedPoint: await _mapsMetadataService.getDetailedPoint(detailedPoint, forceUpdate: true),
+      ));
+    } catch (e) {
+      command(const MapsLoadErrorCommand());
+    }
+  }
+
+  Future<void> deleteComment(String id) async {
+    try {
+      await _mapsMetadataService.deleteComment(id);
+      emit(MapsState(
+        currentUser: state.currentUser,
+        regionForLoading: state.regionForLoading,
+        initialPosition: state.initialPosition,
+        loadedPercentage: state.loadedPercentage,
+        openedDetailedPoint: await _mapsMetadataService.getDetailedPoint(state.openedDetailedPoint!, forceUpdate: true),
+      ));
+    } catch (e) {
+      command(const MapsLoadErrorCommand());
+    }
+  }
+
+  Future<void> editComment({required String id, required String text}) async {
+    try {
+      await _mapsMetadataService.editComment(id: id, text: text);
+      emit(MapsState(
+        currentUser: state.currentUser,
+        regionForLoading: state.regionForLoading,
+        initialPosition: state.initialPosition,
+        loadedPercentage: state.loadedPercentage,
+        openedDetailedPoint: await _mapsMetadataService.getDetailedPoint(state.openedDetailedPoint!, forceUpdate: true),
       ));
     } catch (e) {
       command(const MapsLoadErrorCommand());

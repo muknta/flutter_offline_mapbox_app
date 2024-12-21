@@ -43,6 +43,12 @@ class MapsInitPointsCommand extends MapsCommand {
   final List<Point> points;
 }
 
+class MapsReinstallPointsCommand extends MapsCommand {
+  const MapsReinstallPointsCommand(this.points);
+
+  final List<Point> points;
+}
+
 class MapsAddPointCommand extends MapsCommand {
   const MapsAddPointCommand({required this.lat, required this.lng, required this.name});
 
@@ -52,12 +58,13 @@ class MapsAddPointCommand extends MapsCommand {
 }
 
 class MapsRemovePointCommand extends MapsCommand {
-  const MapsRemovePointCommand({required this.lat, required this.lng});
+  const MapsRemovePointCommand({required this.pointAnnotation});
 
-  final double lat;
-  final double lng;
+  final maps.PointAnnotation pointAnnotation;
 }
 
 class MapsShowPointDetailsCommand extends MapsCommand {
-  const MapsShowPointDetailsCommand();
+  const MapsShowPointDetailsCommand({this.pointAnnotation});
+
+  final maps.PointAnnotation? pointAnnotation;
 }

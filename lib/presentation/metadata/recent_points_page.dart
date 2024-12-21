@@ -6,7 +6,7 @@ import 'package:flutter_offline_mapbox/utils/extended_bloc/extended_bloc_builder
 import 'package:flutter_offline_mapbox/utils/injector.dart';
 import 'package:flutter_offline_mapbox/utils/routes.dart';
 import 'package:go_router/go_router.dart';
-import 'package:super_context_menu/super_context_menu.dart';
+import 'package:intl/intl.dart';
 
 class RecentPointsPage extends StatelessWidget {
   const RecentPointsPage({super.key});
@@ -47,21 +47,26 @@ class RecentPointsPage extends StatelessWidget {
                 child: Card(
                   child: ListTile(
                     title: Text(point.name, style: Theme.of(context).textTheme.headlineSmall),
-                    subtitle: Text('By ${point.user?.nickname} at ${point.updatedAt}', style: Theme.of(context).textTheme.bodySmall),
-
+                    subtitle: Text(
+                      'By ${point.user?.nickname} at ${DateFormat('h:mm a, dd.MM').format(point.updatedAt)}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                     trailing: point.user?.id == state.currentUser.id
-                        ? ContextMenuWidget(
+                        ? PopupMenuButton<String>(
+                            onSelected: (String result) {
+                              if (result == 'Delete') {
+                                context.read<RecentPointsCubit>().deletePoint(point);
+                              }
+                            },
+                            itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                              const PopupMenuItem<String>(
+                                value: 'Delete',
+                                child: Text('Delete'),
+                              ),
+                            ],
                             child: Icon(
                               Icons.more_horiz_outlined,
                               color: Theme.of(context).colorScheme.primary,
-                            ),
-                            menuProvider: (_) => Menu(
-                              children: [
-                                MenuAction(
-                                  callback: () => context.read<RecentPointsCubit>().deletePoint(point),
-                                  title: 'Delete',
-                                ),
-                              ],
                             ),
                           )
                         : null,

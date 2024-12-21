@@ -86,6 +86,15 @@ class MapsMetadataService {
     }
   }
 
+  Future<void> editComment({required String id, required String text}) async {
+    try {
+      await _commentsDao.editComment(id: id, text: text);
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
   Future<void> insertPoint({
     required double lat,
     required double lng,
@@ -150,7 +159,7 @@ class MapsMetadataService {
 
   Future<Point> getDetailedPoint(Point point, {bool forceUpdate = false}) async {
     try {
-      if (point.user != null && point.comments != null) {
+      if (!forceUpdate && point.user != null && point.comments != null) {
         return point;
       }
       Point result = point;
@@ -172,10 +181,11 @@ class MapsMetadataService {
         final commentsJson = await _commentsDao.getCommentsByPoint(point.id);
         List<Comment> comments = [];
         for (final comment in commentsJson) {
-          final commentResourcesJson = await _commentResourcesDao.getResourcesByComment(comment.id);
+          final commentResourcesJson = await _commentResourcesDao.getResourcesByComment(comment[CommentsSchema.id]);
           comments.add(
             Comment.fromLocalJson(
               comment as Map<String, dynamic>,
+              user: result.user!,
               commentResources: commentResourcesJson,
             ),
           );
@@ -216,10 +226,10 @@ class MapsMetadataService {
     }
   }
 
-  Future<void> deleteComment(Comment comment) async {
+  Future<void> deleteComment(String id) async {
     try {
-      await _commentResourcesDao.deleteResourcesByComment(comment.id);
-      await _commentsDao.deleteComment(comment.id);
+      await _commentResourcesDao.deleteResourcesByComment(id);
+      await _commentsDao.deleteComment(id);
     } catch (e) {
       debugPrint(e.toString());
       rethrow;

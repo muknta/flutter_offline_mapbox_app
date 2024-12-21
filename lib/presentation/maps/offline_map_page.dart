@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_offline_mapbox/domain/entities/comment.dart';
 import 'package:flutter_offline_mapbox/domain/entities/point.dart' as point;
 import 'package:flutter_offline_mapbox/presentation/maps/maps_cubit.dart';
 import 'package:flutter_offline_mapbox/presentation/widgets/ink_wrapper.dart';
@@ -10,6 +11,7 @@ import 'package:flutter_offline_mapbox/utils/extended_bloc/extended_bloc_builder
 import 'package:flutter_offline_mapbox/utils/extensions/context_extension.dart';
 import 'package:flutter_offline_mapbox/utils/injector.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' hide ImageSource;
 
 PointAnnotation? _tappedPoint;
@@ -156,16 +158,21 @@ class _OfflineMapState extends State<_OfflineMap> {
                 point.name ?? '',
               );
             }
+          case MapsReinstallPointsCommand():
+            await pointAnnotationManager?.deleteAll();
+            for (final point in command.points) {
+              await _addMarker(
+                Point(coordinates: Position(point.coordinates.lng, point.coordinates.lat)),
+                point.name ?? '',
+              );
+            }
           case MapsAddPointCommand():
             await _addMarker(
               Point(coordinates: Position(command.lng, command.lat)),
               command.name ?? '',
             );
           case MapsRemovePointCommand():
-            if (_tappedPoint != null) {
-              pointAnnotationManager?.delete(_tappedPoint!);
-              _tappedPoint = null;
-            }
+            pointAnnotationManager?.delete(command.pointAnnotation);
           case MapsShowPointDetailsCommand():
             await _showPointDetailsSheet();
         }
@@ -187,10 +194,7 @@ class _OfflineMapState extends State<_OfflineMap> {
                 if (_tappedPoint == null) {
                   await _addPointSheet(mapContext.point.coordinates);
                 } else {
-                  context.read<MapsCubit>().requestPointDetailsFromCoordinates(
-                        lat: _tappedPoint!.geometry.coordinates.lat.toDouble(),
-                        lng: _tappedPoint!.geometry.coordinates.lng.toDouble(),
-                      );
+                  context.read<MapsCubit>().requestPointDetailsFromCoordinates(pointAnnotation: _tappedPoint!);
                   _tappedPoint = null;
                 }
               },
@@ -269,6 +273,8 @@ class _OfflineMapState extends State<_OfflineMap> {
                 if (state.openedDetailedPoint == null) {
                   return const Center(child: CircularProgressIndicator());
                 }
+                final sortedComments = state.openedDetailedPoint!.comments
+                  ?..sort((Comment a, Comment b) => b.updatedAt.compareTo(a.updatedAt));
                 final point.Point detailedPoint = state.openedDetailedPoint!;
                 return SingleChildScrollView(
                   child: Padding(
@@ -308,7 +314,7 @@ class _OfflineMapState extends State<_OfflineMap> {
                                           Navigator.of(context)
                                             ..pop()
                                             ..pop();
-                                          cubit.deletePoint(
+                                          cubit.deletePointByCoordinates(
                                             lat: detailedPoint.coordinates.lat.toDouble(),
                                             lng: detailedPoint.coordinates.lng.toDouble(),
                                           );
@@ -358,8 +364,9 @@ class _OfflineMapState extends State<_OfflineMap> {
                           children: [
                             Expanded(
                               child: TextField(
-                                  controller: controller,
-                                  decoration: const InputDecoration(border: OutlineInputBorder())),
+                                controller: controller,
+                                decoration: const InputDecoration(border: OutlineInputBorder()),
+                              ),
                             ),
                             const SizedBox(width: 12),
                             InkWrapper(
@@ -372,7 +379,7 @@ class _OfflineMapState extends State<_OfflineMap> {
                                     }
                                   });
                                 } catch (e) {
-                                  debugPrint('eee $e');
+                                  debugPrint('ImagePicker $e');
                                 }
                               },
                               padding: const EdgeInsets.all(8.0),
@@ -386,6 +393,9 @@ class _OfflineMapState extends State<_OfflineMap> {
                             InkWrapper(
                               borderRadius: BorderRadius.circular(40),
                               onTap: () {
+                                if (controller.text.trim().isEmpty) {
+                                  return;
+                                }
                                 cubit.addComment(
                                   controller.text,
                                   resources: resources,
@@ -404,13 +414,85 @@ class _OfflineMapState extends State<_OfflineMap> {
                           ],
                         ),
                         ListView.builder(
+                          // TODO
                           shrinkWrap: true,
-                          itemCount: detailedPoint.comments?.length ?? 0,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: sortedComments?.length ?? 0,
                           itemBuilder: (context, index) {
-                            return ListTile(
-                              title: Text(detailedPoint.comments![index].text),
-                              subtitle: Text('Author: ${detailedPoint.user?.nickname}'),
+                            final listTile = ListTile(
+                              title: Text(sortedComments![index].text, style: Theme.of(context).textTheme.bodyLarge),
+                              subtitle: Text(
+                                'Author: ${sortedComments[index].user.nickname}',
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
+                              trailing: Text(
+                                DateFormat('h:mm a, dd.MM').format(detailedPoint.comments![index].updatedAt),
+                                style: Theme.of(context).textTheme.bodyMedium,
+                              ),
                             );
+                            if (sortedComments[index].user.id == state.currentUser.id) {
+                              return PopupMenuButton<String>(
+                                onSelected: (String result) {
+                                  if (result == 'Edit') {
+                                    final controller = TextEditingController(text: sortedComments[index].text);
+                                    showDialog(
+                                      context: context,
+                                      builder: (context) => AlertDialog(
+                                        content: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              'Modify your content:',
+                                              style: Theme.of(context).textTheme.bodyLarge,
+                                            ),
+                                            const SizedBox(height: 12),
+                                            TextField(
+                                              controller: controller,
+                                              decoration: const InputDecoration(border: OutlineInputBorder()),
+                                            ),
+                                          ],
+                                        ),
+                                        actions: [
+                                          TextButton(
+                                            onPressed: () => Navigator.of(context).pop(),
+                                            child: const Text("Cancel"),
+                                          ),
+                                          TextButton(
+                                            onPressed: () async {
+                                              if (controller.text.trim().isEmpty) {
+                                                return;
+                                              }
+                                              Navigator.of(context).pop();
+                                              cubit.editComment(
+                                                id: sortedComments[index].id,
+                                                text: controller.text,
+                                              );
+                                              controller.clear();
+                                            },
+                                            child: const Text("Submit"),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  } else if (result == 'Delete') {
+                                    cubit.deleteComment(sortedComments[index].id);
+                                  }
+                                },
+                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                                  const PopupMenuItem<String>(
+                                    value: 'Edit',
+                                    child: Text('Edit'),
+                                  ),
+                                  const PopupMenuItem<String>(
+                                    value: 'Delete',
+                                    child: Text('Delete'),
+                                  ),
+                                ],
+                                child: listTile,
+                              );
+                            }
+                            return listTile;
                           },
                         ),
                         const SizedBox(height: 24),
@@ -422,6 +504,7 @@ class _OfflineMapState extends State<_OfflineMap> {
         });
   }
 
+  // TODO won't work correctly with dispose
   // @override
   // Future<void> dispose() async {
   //   _tappedPoint = null;

@@ -1,10 +1,12 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_offline_mapbox/data/db/schemas/exports.dart';
+import 'package:flutter_offline_mapbox/domain/entities/user.dart';
 
 class Comment extends Equatable {
   const Comment({
     required this.id,
     required this.text,
+    required this.user,
     required this.resources,
     required this.createdAt,
     required this.updatedAt,
@@ -12,12 +14,14 @@ class Comment extends Equatable {
 
   final String id;
   final String text;
+  final User user;
   final List<CommentResource> resources;
   final DateTime createdAt;
   final DateTime updatedAt;
 
   Comment.fromLocalJson(
     Map<String, dynamic> json, {
+    required this.user,
     required List<dynamic> commentResources,
   })  : id = json[CommentsSchema.id],
         text = json[CommentsSchema.text],
@@ -26,10 +30,10 @@ class Comment extends Equatable {
         createdAt = DateTime.fromMillisecondsSinceEpoch(json[CommentsSchema.createdAt] as int),
         updatedAt = DateTime.fromMillisecondsSinceEpoch(json[CommentsSchema.updatedAt] as int);
 
-  Map<String, dynamic> toLocalJson({required String userId, required String pointId}) => {
+  Map<String, dynamic> toLocalJson({required String pointId}) => {
         CommentsSchema.id: id,
         CommentsSchema.text: text,
-        CommentsSchema.userId: userId,
+        CommentsSchema.userId: user.id,
         CommentsSchema.pointId: pointId,
         CommentsSchema.createdAt: createdAt.millisecondsSinceEpoch,
         CommentsSchema.updatedAt: updatedAt.millisecondsSinceEpoch,
