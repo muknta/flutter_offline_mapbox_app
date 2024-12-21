@@ -48,12 +48,33 @@ class PointsDao {
     }
   }
 
+  Future<Map<String, dynamic>?> getPointByCoordinates({required double lat, required double lng}) async {
+    try {
+      List<dynamic> points = await _sqliteClient.db!.query(
+        PointsSchema.tableName,
+        where: '${PointsSchema.lat} = ? AND ${PointsSchema.lng} = ?',
+        whereArgs: [lat, lng],
+      );
+      return points.firstOrNull;
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+  // 50.45060039261642
+  // 30.514686690506323
   /// Returns point id
-  Future<String> insertPoint({required double lat, required double lng, required String userId}) async {
+  Future<String> insertPoint({
+    required double lat,
+    required double lng,
+    required String? name,
+    required String userId,
+  }) async {
     try {
       final id = const Uuid().v4();
       await _sqliteClient.db!.insert(PointsSchema.tableName, {
         PointsSchema.id: id,
+        PointsSchema.name: name,
         PointsSchema.lat: lat,
         PointsSchema.lng: lng,
         PointsSchema.userId: userId,

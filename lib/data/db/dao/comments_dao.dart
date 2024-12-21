@@ -47,6 +47,8 @@ class CommentsDao {
         CommentsSchema.text: text,
         CommentsSchema.userId: userId,
         CommentsSchema.pointId: pointId,
+        CommentsSchema.createdAt: DateTime.now().millisecondsSinceEpoch,
+        CommentsSchema.updatedAt: DateTime.now().millisecondsSinceEpoch,
       });
       return id;
     } catch (e) {

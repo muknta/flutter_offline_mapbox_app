@@ -35,7 +35,7 @@ class RecentPointsCubit extends ExtendedCubit<RecentPointsState, RecentPointsCom
       emit(RecentPointsState(
         currentUser: state.currentUser,
         points:
-            (!state.showOnlyMy ? await _mapsMetadataService.getAllPoints() : await _mapsMetadataService.getMyPoints())
+            (!state.showOnlyMy ? await _mapsMetadataService.getMyPoints() : await _mapsMetadataService.getAllPoints())
               ..sort((Point a, Point b) => b.updatedAt.compareTo(a.updatedAt)),
         showOnlyMy: !state.showOnlyMy,
       ));
@@ -46,12 +46,11 @@ class RecentPointsCubit extends ExtendedCubit<RecentPointsState, RecentPointsCom
 
   Future<void> deletePoint(Point point) async {
     try {
-      await _mapsMetadataService.deletePoint(point);
+      await _mapsMetadataService.deletePoint(point.id);
       emit(RecentPointsState(
         currentUser: state.currentUser,
-        points:
-            !state.showOnlyMy ? await _mapsMetadataService.getAllPoints() : await _mapsMetadataService.getMyPoints(),
-        showOnlyMy: !state.showOnlyMy,
+        points: state.showOnlyMy ? await _mapsMetadataService.getMyPoints() : await _mapsMetadataService.getAllPoints(),
+        showOnlyMy: state.showOnlyMy,
       ));
     } catch (e) {
       command(const RecentPointsLoadErrorCommand());

@@ -13,7 +13,8 @@ class Routes {
   static const String auth = '/auth';
   static const String offlineMaps = '/offline_maps';
   static const String recentPoints = '/recent_points';
-  static const String offlineMapsPoint = '/offline_maps/point/:pointId';
+  static const String pointIdVar = 'pointId';
+  static const String offlineMapsPointName = 'maps_point';
 }
 
 final GoRouter appRouter = GoRouter(
@@ -37,24 +38,24 @@ final GoRouter appRouter = GoRouter(
           },
         ),
         GoRoute(
-          path: 'recent_points',
-          builder: (BuildContext context, GoRouterState state) {
-            return const RecentPointsPage();
-          },
-        ),
+            path: 'recent_points',
+            builder: (BuildContext context, GoRouterState state) {
+              return const RecentPointsPage();
+            },
+            routes: [
+              GoRoute(
+                name: 'maps_point',
+                path: 'offline_maps/point/:pointId',
+                builder: (BuildContext context, GoRouterState state) {
+                  return OfflineMapPage(preselectedPoint: state.extra as Point);
+                },
+              ),
+            ]),
         GoRoute(
           path: 'offline_maps',
           builder: (BuildContext context, GoRouterState state) {
             return const OfflineMapPage();
           },
-          routes: <RouteBase>[
-            GoRoute(
-              path: 'point/:pointId',
-              builder: (BuildContext context, GoRouterState state) {
-                return OfflineMapPage(preselectedPoint: state.extra as Point);
-              },
-            ),
-          ],
         ),
       ],
     ),

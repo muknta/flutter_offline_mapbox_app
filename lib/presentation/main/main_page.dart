@@ -68,7 +68,28 @@ class MainPage extends StatelessWidget {
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(backgroundColor: Colors.red.shade400),
                       child: const Text('Delete account', style: TextStyle(color: Colors.black)),
-                      onPressed: () => context.read<MainCubit>().deleteUser(),
+                      onPressed: () {
+                        final cubit = context.read<MainCubit>();
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            content: Text(
+                              "Are you sure you want to delete your account? All data will be lost.",
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Cancel")),
+                              TextButton(
+                                onPressed: () async {
+                                  Navigator.of(context).pop();
+                                  cubit.deleteUser();
+                                },
+                                child: const Text("Delete"),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 70),
                   ],

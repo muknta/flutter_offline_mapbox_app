@@ -65,7 +65,10 @@ class AuthPage extends StatelessWidget {
                         const SizedBox(height: 20),
                         Text('Password', style: Theme.of(context).textTheme.headlineSmall),
                         const SizedBox(height: 4),
-                        TextFormField(controller: passwordController),
+                        TextFormField(
+                          controller: passwordController,
+                          obscureText: state is SignInState,
+                        ),
                         const SizedBox(height: 20),
                         if (state is SignUpState) ...[
                           Text('Confirm password', style: Theme.of(context).textTheme.headlineSmall),

@@ -48,6 +48,11 @@ class MapsMetadataService {
     try {
       final failedFiles = <XFile>[];
 
+      final commentId = await _commentsDao.insertComment(
+        text: text,
+        userId: userId,
+        pointId: pointId,
+      );
       for (final resource in resources) {
         Directory directory = await getApplicationDocumentsDirectory();
         String path = directory.path;
@@ -65,18 +70,13 @@ class MapsMetadataService {
             id: cachedResource.id,
             name: cachedResource.name,
             extension: cachedResource.extension,
-            commentId: pointId,
+            commentId: commentId,
           );
         } catch (e) {
           debugPrint(e.toString());
           failedFiles.add(resource);
         }
       }
-      await _commentsDao.insertComment(
-        text: text,
-        userId: userId,
-        pointId: pointId,
-      );
       if (failedFiles.isNotEmpty) {
         throw FailedFilesException(failedFiles);
       }
@@ -89,13 +89,14 @@ class MapsMetadataService {
   Future<void> insertPoint({
     required double lat,
     required double lng,
+    required String? name,
   }) async {
     try {
       final user = _sessionService.currentUser;
       if (user == null) {
         throw const NotAuthenticatedException();
       }
-      await _pointsDao.insertPoint(lat: lat, lng: lng, userId: user.id);
+      await _pointsDao.insertPoint(lat: lat, lng: lng, name: name, userId: user.id);
     } catch (e) {
       debugPrint(e.toString());
       rethrow;
@@ -104,10 +105,16 @@ class MapsMetadataService {
 
   Future<List<Point>> getAllPoints() async {
     try {
-      final points = await _pointsDao.getAllPoints();
-      return points.map((item) {
-        return Point.fromLocalJson(item as Map<String, dynamic>);
-      }).toList();
+      final pointsJson = await _pointsDao.getAllPoints();
+      List<Point> points = [];
+      for (final point in pointsJson) {
+        final userJson = await _usersDao.getUserById(point[PointsSchema.userId]);
+        points.add(Point.fromLocalJson(
+          point as Map<String, dynamic>,
+          user: userJson == null ? null : User.fromLocalJson(userJson),
+        ));
+      }
+      return points;
     } catch (e) {
       debugPrint(e.toString());
       rethrow;
@@ -128,7 +135,20 @@ class MapsMetadataService {
     }
   }
 
-  Future<Point> getDetailedPoint(Point point) async {
+  Future<Point?> getDetailedPointByCoordinates({required double lat, required double lng}) async {
+    try {
+      final pointJson = await _pointsDao.getPointByCoordinates(lat: lat, lng: lng);
+      if (pointJson == null) {
+        return null;
+      }
+      return getDetailedPoint(Point.fromLocalJson(pointJson));
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<Point> getDetailedPoint(Point point, {bool forceUpdate = false}) async {
     try {
       if (point.user != null && point.comments != null) {
         return point;
@@ -136,7 +156,7 @@ class MapsMetadataService {
       Point result = point;
 
       User? user = point.user;
-      if (user == null) {
+      if (user == null || forceUpdate) {
         final pointJson = (await _pointsDao.getPointById(point.id));
         if (pointJson == null) {
           throw const NotFoundException();
@@ -148,7 +168,7 @@ class MapsMetadataService {
         }
         result = result.copyWithExtra(user: user);
       }
-      if (point.comments == null) {
+      if (point.comments == null || forceUpdate) {
         final commentsJson = await _commentsDao.getCommentsByPoint(point.id);
         List<Comment> comments = [];
         for (final comment in commentsJson) {
@@ -169,14 +189,27 @@ class MapsMetadataService {
     }
   }
 
-  Future<void> deletePoint(Point point) async {
+  Future<void> deletePoint(String id) async {
     try {
-      final comments = await _commentsDao.getCommentsByPoint(point.id);
+      final comments = await _commentsDao.getCommentsByPoint(id);
       for (final comment in comments) {
         await _commentResourcesDao.deleteResourcesByComment(comment.id);
       }
-      await _commentsDao.deleteCommentsByPoint(point.id);
-      await _pointsDao.deletePoint(point.id);
+      await _commentsDao.deleteCommentsByPoint(id);
+      await _pointsDao.deletePoint(id);
+    } catch (e) {
+      debugPrint(e.toString());
+      rethrow;
+    }
+  }
+
+  Future<void> deletePointByCoordinates({required double lat, required double lng}) async {
+    try {
+      final point = await _pointsDao.getPointByCoordinates(lat: lat, lng: lng);
+      if (point == null) {
+        return;
+      }
+      await deletePoint(point['id']);
     } catch (e) {
       debugPrint(e.toString());
       rethrow;
