@@ -117,8 +117,10 @@ class _OfflineMapState extends State<_OfflineMap> {
 
     pointAnnotationManager?.addOnPointAnnotationClickListener(AnnotationClickListener(
       (PointAnnotation annotation) {
-        context.read<MapsCubit>().requestPointDetailsFromCoordinates(pointAnnotation: _tappedPoint!);
-        _tappedPoint = null;
+        if (Platform.isAndroid) {
+          context.read<MapsCubit>().requestPointDetailsFromCoordinates(pointAnnotation: _tappedPoint!);
+          _tappedPoint = null;
+        }
       },
     ));
   }
@@ -198,6 +200,9 @@ class _OfflineMapState extends State<_OfflineMap> {
               onTapListener: (MapContentGestureContext mapContext) async {
                 if (_tappedPoint == null) {
                   await _addPointSheet(mapContext.point.coordinates);
+                } else if (Platform.isIOS) {
+                  context.read<MapsCubit>().requestPointDetailsFromCoordinates(pointAnnotation: _tappedPoint!);
+                  _tappedPoint = null;
                 }
               },
               onMapCreated: _onMapCreated,
