@@ -23,7 +23,22 @@ if (flutterVersionName == null) {
     flutterVersionName = "1.0"
 }
 
+def signingProperties = new Properties()
+def signingPropertiesFile = rootProject.file('key.properties')
+if (signingPropertiesFile.exists()) {
+    signingProperties.load(new FileInputStream(signingPropertiesFile))
+}
+
 android {
+    signingConfigs {
+        release {
+            storeFile file(signingProperties['RELEASE_STORE_FILE'])
+            storePassword signingProperties['RELEASE_STORE_PASSWORD']
+            keyPassword signingProperties['RELEASE_KEY_PASSWORD']
+            keyAlias signingProperties['RELEASE_KEY_ALIAS']
+        }
+    }
+
     namespace = "com.example.flutter_offline_mapbox"
     compileSdk = 34
 
@@ -49,9 +64,14 @@ android {
     }
 
     buildTypes {
-        release {
-            shrinkResources true
+        debug {
+            signingConfig signingConfigs.debug
             minifyEnabled true
+        }
+        release {
+            signingConfig signingConfigs.release
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
