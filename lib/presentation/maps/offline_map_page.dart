@@ -156,9 +156,9 @@ class _OfflineMapState extends State<_OfflineMap> {
       commandListener: (context, command) async {
         switch (command) {
           case MapsLoadSuccessCommand():
-            context.showSuccessSnackBar('Successfully loaded map');
+            context.showSuccessSnackBar('Successfully loaded');
           case MapsLoadErrorCommand():
-            context.showErrorSnackBar('Error during map loading');
+            context.showErrorSnackBar('Error during loading');
           case MapsInitPointsCommand():
             await waitForManagerInitialization();
             for (final point in command.points) {
@@ -275,8 +275,6 @@ class _OfflineMapState extends State<_OfflineMap> {
     showBottomSheet(
         context: context,
         builder: (context) {
-          final resources = <XFile>[];
-          final TextEditingController controller = TextEditingController();
           return BlocBuilder<MapsCubit, MapsState>(
               bloc: cubit,
               buildWhen: (previous, current) => previous.openedDetailedPoint != current.openedDetailedPoint,
@@ -290,224 +288,11 @@ class _OfflineMapState extends State<_OfflineMap> {
                 return SingleChildScrollView(
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        Row(
-                          children: [
-                            Text('Point details', style: Theme.of(context).textTheme.headlineMedium),
-                            const Spacer(),
-                            ElevatedButton(
-                              onPressed: () {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    content: Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(
-                                          "Are you sure you want to delete this marker?",
-                                          style: Theme.of(context).textTheme.bodyLarge,
-                                        ),
-                                        Text(
-                                          detailedPoint.name,
-                                          style: Theme.of(context).textTheme.headlineSmall,
-                                        ),
-                                      ],
-                                    ),
-                                    actions: [
-                                      TextButton(
-                                          onPressed: () => Navigator.of(context).pop(), child: const Text("Cancel")),
-                                      TextButton(
-                                        onPressed: () async {
-                                          Navigator.of(context)
-                                            ..pop()
-                                            ..pop();
-                                          cubit.deletePointByCoordinates(
-                                            lat: detailedPoint.coordinates.lat.toDouble(),
-                                            lng: detailedPoint.coordinates.lng.toDouble(),
-                                          );
-                                        },
-                                        child: const Text("Delete"),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                              child: const Padding(
-                                padding: EdgeInsets.symmetric(vertical: 12.0),
-                                child: Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
-                                  size: 24,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        Text('Title', style: Theme.of(context).textTheme.headlineSmall),
-                        const SizedBox(height: 4),
-                        Text(detailedPoint.name, style: Theme.of(context).textTheme.bodyLarge),
-                        const SizedBox(height: 12),
-                        Text('Author', style: Theme.of(context).textTheme.headlineSmall),
-                        const SizedBox(height: 4),
-                        Text(detailedPoint.user?.nickname ?? '', style: Theme.of(context).textTheme.bodyLarge),
-                        const SizedBox(height: 12),
-                        Text('Latitude', style: Theme.of(context).textTheme.headlineSmall),
-                        const SizedBox(height: 4),
-                        Text(detailedPoint.coordinates.lat.toString(), style: Theme.of(context).textTheme.bodyLarge),
-                        const SizedBox(height: 8),
-                        Text('Longitude', style: Theme.of(context).textTheme.headlineSmall),
-                        const SizedBox(height: 4),
-                        Text(detailedPoint.coordinates.lng.toString(), style: Theme.of(context).textTheme.bodyLarge),
-                        const SizedBox(height: 36),
-                        Text('Comments', style: Theme.of(context).textTheme.headlineSmall),
-                        const SizedBox(height: 12),
-                        const Divider(),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: resources.map((e) => Image.file(File(e.path))).toList(),
-                        ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: TextField(
-                                controller: controller,
-                                decoration: const InputDecoration(border: OutlineInputBorder()),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            InkWrapper(
-                              borderRadius: BorderRadius.circular(40),
-                              onTap: () {
-                                try {
-                                  ImagePicker().pickImage(source: ImageSource.gallery).then((value) {
-                                    if (value != null) {
-                                      resources.add(value);
-                                    }
-                                  });
-                                } catch (e) {
-                                  debugPrint('ImagePicker $e');
-                                }
-                              },
-                              padding: const EdgeInsets.all(8.0),
-                              child: const Icon(
-                                Icons.add,
-                                color: Colors.black54,
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            InkWrapper(
-                              borderRadius: BorderRadius.circular(40),
-                              onTap: () {
-                                if (controller.text.trim().isEmpty) {
-                                  return;
-                                }
-                                cubit.addComment(
-                                  controller.text,
-                                  resources: resources,
-                                  detailedPoint: detailedPoint,
-                                );
-                                controller.clear();
-                                resources.clear();
-                              },
-                              padding: const EdgeInsets.all(8.0),
-                              child: const Icon(
-                                Icons.send,
-                                color: Colors.black54,
-                                size: 24,
-                              ),
-                            ),
-                          ],
-                        ),
-                        ListView.builder(
-                          // TODO
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: sortedComments?.length ?? 0,
-                          itemBuilder: (context, index) {
-                            final listTile = ListTile(
-                              title: Text(sortedComments![index].text, style: Theme.of(context).textTheme.bodyLarge),
-                              subtitle: Text(
-                                'Author: ${sortedComments[index].user.nickname}',
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                              trailing: Text(
-                                DateFormat('h:mm a, dd.MM').format(detailedPoint.comments![index].updatedAt),
-                                style: Theme.of(context).textTheme.bodyMedium,
-                              ),
-                            );
-                            if (sortedComments[index].user.id == state.currentUser.id) {
-                              return PopupMenuButton<String>(
-                                onSelected: (String result) {
-                                  if (result == 'Edit') {
-                                    final controller = TextEditingController(text: sortedComments[index].text);
-                                    showDialog(
-                                      context: context,
-                                      builder: (context) => AlertDialog(
-                                        content: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              'Modify your content:',
-                                              style: Theme.of(context).textTheme.bodyLarge,
-                                            ),
-                                            const SizedBox(height: 12),
-                                            TextField(
-                                              controller: controller,
-                                              decoration: const InputDecoration(border: OutlineInputBorder()),
-                                            ),
-                                          ],
-                                        ),
-                                        actions: [
-                                          TextButton(
-                                            onPressed: () => Navigator.of(context).pop(),
-                                            child: const Text("Cancel"),
-                                          ),
-                                          TextButton(
-                                            onPressed: () async {
-                                              if (controller.text.trim().isEmpty) {
-                                                return;
-                                              }
-                                              Navigator.of(context).pop();
-                                              cubit.editComment(
-                                                id: sortedComments[index].id,
-                                                text: controller.text,
-                                              );
-                                              controller.clear();
-                                            },
-                                            child: const Text("Submit"),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  } else if (result == 'Delete') {
-                                    cubit.deleteComment(sortedComments[index].id);
-                                  }
-                                },
-                                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                                  const PopupMenuItem<String>(
-                                    value: 'Edit',
-                                    child: Text('Edit'),
-                                  ),
-                                  const PopupMenuItem<String>(
-                                    value: 'Delete',
-                                    child: Text('Delete'),
-                                  ),
-                                ],
-                                child: listTile,
-                              );
-                            }
-                            return listTile;
-                          },
-                        ),
-                        const SizedBox(height: 24),
-                      ],
+                    child: _Content(
+                      cubit: cubit,
+                      state: state,
+                      detailedPoint: detailedPoint,
+                      sortedComments: sortedComments ?? [],
                     ),
                   ),
                 );
@@ -523,6 +308,285 @@ class _OfflineMapState extends State<_OfflineMap> {
 //   pointAnnotationManager = null;
 //   return super.dispose();
 // }
+}
+
+class _Content extends StatefulWidget {
+  const _Content({required this.cubit, required this.detailedPoint, required this.sortedComments, required this.state});
+
+  final MapsCubit cubit;
+  final point.Point detailedPoint;
+  final List<Comment>? sortedComments;
+  final MapsState state;
+
+  @override
+  State<_Content> createState() => _ContentState();
+}
+
+class _ContentState extends State<_Content> {
+  late final List<XFile> resources;
+  late final TextEditingController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    resources = <XFile>[];
+    controller = TextEditingController();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: <Widget>[
+        Row(
+          children: [
+            Text('Point details', style: Theme.of(context).textTheme.headlineMedium),
+            const Spacer(),
+            ElevatedButton(
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "Are you sure you want to delete this marker?",
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
+                        Text(
+                          widget.detailedPoint.name,
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(onPressed: () => Navigator.of(context).pop(), child: const Text("Cancel")),
+                      TextButton(
+                        onPressed: () async {
+                          Navigator.of(context)
+                            ..pop()
+                            ..pop();
+                          widget.cubit.deletePointByCoordinates(
+                            lat: widget.detailedPoint.coordinates.lat.toDouble(),
+                            lng: widget.detailedPoint.coordinates.lng.toDouble(),
+                          );
+                        },
+                        child: const Text("Delete"),
+                      ),
+                    ],
+                  ),
+                );
+              },
+              child: const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12.0),
+                child: Icon(
+                  Icons.delete,
+                  color: Colors.red,
+                  size: 24,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 20),
+        Text('Title', style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 4),
+        Text(widget.detailedPoint.name, style: Theme.of(context).textTheme.bodyLarge),
+        const SizedBox(height: 12),
+        Text('Author', style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 4),
+        Text(widget.detailedPoint.user?.nickname ?? '', style: Theme.of(context).textTheme.bodyLarge),
+        const SizedBox(height: 12),
+        Text('Latitude', style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 4),
+        Text(widget.detailedPoint.coordinates.lat.toString(), style: Theme.of(context).textTheme.bodyLarge),
+        const SizedBox(height: 8),
+        Text('Longitude', style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 4),
+        Text(widget.detailedPoint.coordinates.lng.toString(), style: Theme.of(context).textTheme.bodyLarge),
+        const SizedBox(height: 36),
+        Text('Comments', style: Theme.of(context).textTheme.headlineSmall),
+        const SizedBox(height: 12),
+        const Divider(),
+        const SizedBox(height: 12),
+        Row(
+          children: resources
+              .map((e) => Image.file(
+                    File(e.path),
+                    width: 100,
+                    height: 100,
+                  ))
+              .toList(),
+        ),
+        Row(
+          children: [
+            Expanded(
+              child: TextField(
+                controller: controller,
+                decoration: const InputDecoration(border: OutlineInputBorder()),
+              ),
+            ),
+            const SizedBox(width: 12),
+            InkWrapper(
+              borderRadius: BorderRadius.circular(40),
+              onTap: () {
+                try {
+                  ImagePicker().pickImage(source: ImageSource.gallery).then((value) {
+                    if (value != null) {
+                      resources.add(value);
+                      setState(() {});
+                    }
+                  });
+                } catch (e) {
+                  debugPrint('ImagePicker $e');
+                }
+              },
+              padding: const EdgeInsets.all(8.0),
+              child: const Icon(
+                Icons.add,
+                color: Colors.black54,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 12),
+            InkWrapper(
+              borderRadius: BorderRadius.circular(40),
+              onTap: () {
+                if (controller.text.trim().isEmpty) {
+                  return;
+                }
+                widget.cubit.addComment(
+                  controller.text,
+                  resources: resources,
+                  detailedPoint: widget.detailedPoint,
+                );
+                controller.clear();
+                resources.clear();
+              },
+              padding: const EdgeInsets.all(8.0),
+              child: const Icon(
+                Icons.send,
+                color: Colors.black54,
+                size: 24,
+              ),
+            ),
+          ],
+        ),
+        ListView.builder(
+          // TODO
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: widget.sortedComments?.length ?? 0,
+          itemBuilder: (context, index) {
+            final listTile = Column(
+              children: [
+                ListTile(
+                  title: Text(widget.sortedComments![index].text, style: Theme.of(context).textTheme.bodyLarge),
+                  subtitle: Text(
+                    'Author: ${widget.sortedComments![index].user.nickname}',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  trailing: Text(
+                    DateFormat('h:mm a, dd.MM').format(widget.detailedPoint.comments![index].updatedAt),
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ),
+                GridView(
+                  // TODO
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    mainAxisSpacing: 4,
+                    crossAxisSpacing: 4,
+                  ),
+                  children: widget.sortedComments![index].resources
+                      .map((e) => Image.file(
+                            File('${widget.cubit.path}/${e.toString()}'),
+                            width: 100,
+                            height: 70,
+                          ))
+                      .toList(),
+                ),
+                if (index < widget.sortedComments!.length - 1) const Divider(height: 1),
+              ],
+            );
+            if (widget.sortedComments![index].user.id == widget.state.currentUser.id) {
+              return Column(
+                children: [
+                  PopupMenuButton<String>(
+                    onSelected: (String result) {
+                      if (result == 'Edit') {
+                        final controller = TextEditingController(text: widget.sortedComments![index].text);
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            content: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Modify your content:',
+                                  style: Theme.of(context).textTheme.bodyLarge,
+                                ),
+                                const SizedBox(height: 12),
+                                TextField(
+                                  controller: controller,
+                                  decoration: const InputDecoration(border: OutlineInputBorder()),
+                                ),
+                              ],
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(),
+                                child: const Text("Cancel"),
+                              ),
+                              TextButton(
+                                onPressed: () async {
+                                  if (controller.text.trim().isEmpty) {
+                                    return;
+                                  }
+                                  Navigator.of(context).pop();
+                                  widget.cubit.editComment(
+                                    id: widget.sortedComments![index].id,
+                                    text: controller.text,
+                                  );
+                                  controller.clear();
+                                },
+                                child: const Text("Submit"),
+                              ),
+                            ],
+                          ),
+                        );
+                      } else if (result == 'Delete') {
+                        widget.cubit.deleteComment(widget.sortedComments![index].id);
+                      }
+                    },
+                    itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                      const PopupMenuItem<String>(
+                        value: 'Edit',
+                        child: Text('Edit'),
+                      ),
+                      const PopupMenuItem<String>(
+                        value: 'Delete',
+                        child: Text('Delete'),
+                      ),
+                    ],
+                    child: listTile,
+                  ),
+                ],
+              );
+            }
+            return listTile;
+          },
+        ),
+        const SizedBox(height: 24),
+      ],
+    );
+  }
 }
 
 class AnnotationClickListener extends OnPointAnnotationClickListener {

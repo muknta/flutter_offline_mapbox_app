@@ -68,6 +68,8 @@ CREATE TABLE ${CommentsSchema.tableName} (
       await db.execute('''
 CREATE TABLE ${CommentResourcesSchema.tableName} ( 
   ${CommentResourcesSchema.id} TEXT PRIMARY KEY,
+  ${CommentResourcesSchema.name} TEXT NOT NULL,
+  ${CommentResourcesSchema.extension} TEXT NOT NULL,
   ${CommentResourcesSchema.commentId} TEXT NOT NULL,
   CONSTRAINT fk_comments
     FOREIGN KEY (${CommentResourcesSchema.commentId})

@@ -47,13 +47,14 @@ class MapsMetadataService {
   }) async {
     try {
       final failedFiles = <XFile>[];
-
+      // NOTE: need to be copied from parameters, otherwise will be cleared
+      final res = resources.toList();
       final commentId = await _commentsDao.insertComment(
         text: text,
         userId: userId,
         pointId: pointId,
       );
-      for (final resource in resources) {
+      for (final resource in res) {
         Directory directory = await getApplicationDocumentsDirectory();
         String path = directory.path;
         final nameParts = resource.name.split('.');

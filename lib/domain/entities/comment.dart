@@ -78,10 +78,11 @@ class CommentResource extends Equatable {
         name = json[CommentResourcesSchema.name],
         extension = json[CommentResourcesSchema.extension];
 
-  Map<String, dynamic> toLocalJson() => {
+  Map<String, dynamic> toLocalJson({required String commentId}) => {
         CommentResourcesSchema.id: id,
         CommentResourcesSchema.name: name,
         CommentResourcesSchema.extension: extension,
+        CommentResourcesSchema.commentId: commentId,
       };
 
   @override

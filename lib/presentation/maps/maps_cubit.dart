@@ -8,6 +8,7 @@ import 'package:flutter_offline_mapbox/utils/extended_bloc/extended_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:injectable/injectable.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as maps;
+import 'package:path_provider/path_provider.dart';
 
 part 'maps_types.dart';
 
@@ -22,8 +23,12 @@ class MapsCubit extends ExtendedCubit<MapsState, MapsCommand> {
   final MapsMetadataService _mapsMetadataService;
   final SharedPrefsClient _prefsClient;
 
+  late String _path;
+  String get path => _path;
+
   Future<void> init({Point? preselectedPoint}) async {
     try {
+      _path = (await getApplicationDocumentsDirectory()).path;
       emit(MapsState(
         currentUser: state.currentUser,
         regionForLoading: state.regionForLoading,
