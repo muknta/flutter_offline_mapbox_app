@@ -44,6 +44,6 @@ ORG_GRADLE_PROJECT_SDK_REGISTRY_TOKEN=sk.eyJ1IjoibX.....
 - Quick access to the Point details directly from the Recent Points page
 <img width="323" alt="Screenshot 2024-12-21 at 06 46 48" src="https://github.com/user-attachments/assets/6e3b138a-c14f-4605-be2f-ae9946c91f21" />
 
-- Ability write/edit/delete your OWN comments per each point, and to attach local images per each comment. Everything will be cached. (Attachment of images won't work on iOS simulator due to library bug regarding chip architecture most probably)
+- Ability to write/edit/delete your OWN comments per each point, and attach local images per each comment. Everything will be cached. (Attachment of images won't work on iOS simulator due to library bug regarding chip architecture most probably)
 <img width="241" alt="Screenshot 2024-12-23 at 16 56 37" src="https://github.com/user-attachments/assets/9d9d7bb6-0fce-4695-8428-da76732702e0" />
 
