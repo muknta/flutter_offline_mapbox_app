@@ -192,9 +192,11 @@ class _OfflineMapState extends State<_OfflineMap> {
             child: MapWidget(
               styleUri: MapboxStyles.MAPBOX_STREETS,
               cameraOptions: CameraOptions(
-                center: state.initialPosition != null
-                    ? Point(coordinates: Position(state.initialPosition!.lng, state.initialPosition!.lat))
-                    : null,
+                center: Point(
+                  coordinates: state.initialPosition != null
+                      ? Position(state.initialPosition!.lng, state.initialPosition!.lat)
+                      : Position(state.regionForLoading.lng, state.regionForLoading.lat),
+                ),
                 zoom: 12.0,
               ),
               onTapListener: (MapContentGestureContext mapContext) async {
