@@ -114,6 +114,13 @@ class _OfflineMapState extends State<_OfflineMap> {
 
     // Initialize point annotation manager.
     pointAnnotationManager = await mapboxMap.annotations.createPointAnnotationManager();
+
+    pointAnnotationManager?.addOnPointAnnotationClickListener(AnnotationClickListener(
+      (PointAnnotation annotation) {
+        context.read<MapsCubit>().requestPointDetailsFromCoordinates(pointAnnotation: _tappedPoint!);
+        _tappedPoint = null;
+      },
+    ));
   }
 
   Future<void> _addMarker(Point point, String title) async {
@@ -189,13 +196,8 @@ class _OfflineMapState extends State<_OfflineMap> {
                 zoom: 12.0,
               ),
               onTapListener: (MapContentGestureContext mapContext) async {
-                pointAnnotationManager?.addOnPointAnnotationClickListener(AnnotationClickListener());
-
                 if (_tappedPoint == null) {
                   await _addPointSheet(mapContext.point.coordinates);
-                } else {
-                  context.read<MapsCubit>().requestPointDetailsFromCoordinates(pointAnnotation: _tappedPoint!);
-                  _tappedPoint = null;
                 }
               },
               onMapCreated: _onMapCreated,
@@ -519,8 +521,13 @@ class _OfflineMapState extends State<_OfflineMap> {
 }
 
 class AnnotationClickListener extends OnPointAnnotationClickListener {
+  AnnotationClickListener(this._onPointAnnotationClick);
+
+  final void Function(PointAnnotation annotation) _onPointAnnotationClick;
+
   @override
   void onPointAnnotationClick(PointAnnotation annotation) {
     _tappedPoint = annotation;
+    _onPointAnnotationClick(annotation);
   }
 }
